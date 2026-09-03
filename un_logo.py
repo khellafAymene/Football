@@ -25,7 +25,7 @@ df = dataset.copy()
 # 3. إعداد المشكل لحل مشكلة المربعات (تعطيل الـ ligatures)
 reshaper = arabic_reshaper.ArabicReshaper(configuration={
     'delete_harakat': True,
-    'support_ligatures': False
+    'support_ligatures': True
 })
 
 # 4. دالة معالجة النصوص
