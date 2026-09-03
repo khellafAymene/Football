@@ -2,7 +2,6 @@
 
 import pandas as pd
 import matplotlib
-
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -224,7 +223,7 @@ ax.text(x_start, 1.01, Title_left,
         ha="left", va="bottom", fontsize=Title_size_left, color=Title_color_left,fontweight=Title_bold_left,
          transform=ax.transAxes)
 
-ax.text(x_end, 1.01, Title_right,
+ax.text(x_end, 0.91, ar(Title_right),
         ha="right", va="bottom", fontsize=Title_size_right, color=Title_color_right,fontweight=Title_bold_right,
     transform=ax.transAxes)
 
