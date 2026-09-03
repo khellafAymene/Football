@@ -41,19 +41,19 @@ def ar(text):
 
 # 1 العناوين
 
-Title_left = "أقوى فريق"				             # العنوان الأيسر (أصبح الأفضل على اليسار)
-Title_size_left = 15                         # حجم العنوان الأيسر
+Title_left = "أفضل فريق"				             # العنوان الأيسر (أصبح الأفضل على اليسار)
+Title_size_left = 12                         # حجم العنوان الأيسر
 Title_bold_left = None                      # سمك العنوان الأيسر ولتفعيلها السمك غيرها إلى Title_bold_left = "bold"
 Title_color_left = "#999999"              # لون كتابة العنوان الأيسر
 
 Title_right = "أضعف فريق"             # العنوان الرئيسي (أصبح الأسوأ على اليمين)
-Title_size_right = 15                        # حجم العنوان الرئيسي
+Title_size_right = 11                        # حجم العنوان الرئيسي
 Title_bold_right = None                     # سمك العنوان الرئيسي ولتفعيلها السمك غيرها إلى Title_bold_right = "bold"
 Title_color_right = "#999999"             # لون كتابة العنوان الرئيسي
 
 # 2 المؤشرات
 
-Metric_size = 15                           # حجم المؤشرات
+Metric_size = 12                           # حجم المؤشرات
 Metric_bold = None                          # سمك المؤشرات ولتفعيلها Metric_bold = "bold"
 Metric_color = "#333333"                  # لون كتابة المأشرات
 
