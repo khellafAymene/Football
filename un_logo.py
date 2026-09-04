@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.transforms as mtransforms
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
 from PIL import Image
@@ -37,8 +38,6 @@ def ar(text):
 # ─────0. تحديد القيم────────────────────────────────────────────────────────────
 
 
-
-
 # 1 العناوين
 
 Title_left = "أفضل فريق"				             # العنوان الأيسر (أصبح الأفضل على اليسار)
@@ -50,6 +49,12 @@ Title_right = "أضعف فريق"             # العنوان الرئيسي (�
 Title_size_right = 11                        # حجم العنوان الرئيسي
 Title_bold_right = None                     # سمك العنوان الرئيسي ولتفعيلها السمك غيرها إلى Title_bold_right = "bold"
 Title_color_right = "#999999"             # لون كتابة العنوان الرئيسي
+
+# ─── إعداد ارتفاع العنوانين فوق أول صف (الحل الجديد) ─────────────────────────
+# title_gap: مسافة ثابتة (بوحدات row_height) بين أعلى صف بيانات والعنوان
+# هذه القيمة لا تتأثر بعدد المؤشرات إطلاقًا، عكس الطريقة القديمة (transAxes)
+title_gap_left  = 0.35   # عدّل هذه القيمة لرفع/خفض العنوان الأيسر
+title_gap_right = 0.25   # عدّل هذه القيمة لرفع/خفض العنوان الأيمن
 
 # 2 المؤشرات
 
@@ -67,7 +72,6 @@ COLOR_BEST     = "#2ECC71"   # لون أفضل فريق  (أعلى قيمة)
 COLOR_WORST    = "#E74C3C"   # لون أسوأ فريق  (أدنى قيمة)
 COLOR_BG       = "#FFFFFF"   # لون خلفية المخطط
 COLOR_LABEL    = "#333333"   # لون النصوص
-
 
 
 #-----------------------------------------------------------------------------------
@@ -216,21 +220,27 @@ for row_idx, metric in enumerate(METRICS):
         transform=ax.get_yaxis_transform())
 
 
-# ─────5. رأس المخطط─────────────────────────────────────────────────────────────
+# ─────5. رأس المخطط (الحل الجديد: y بوحدات data بدلاً من نسبة axes)────────────
 
+# موضع أول صف (أعلى صف بيانات فعلي)
+top_row_y = (n_metrics - 1) * row_height
 
-ax.text(x_start, 1.01, Title_left,
-        ha="left", va="bottom", fontsize=Title_size_left, color=Title_color_left,fontweight=Title_bold_left,
-         transform=ax.transAxes)
+# x نسبة من عرض المحور (axes) — y بوحدات البيانات (data)
+# بهذا يبقى العنوان دائمًا على مسافة ثابتة فوق أول صف، بغض النظر عن عدد المؤشرات
+trans_mixed = mtransforms.blended_transform_factory(ax.transAxes, ax.transData)
 
-ax.text(x_end, 0.91, ar(Title_right),
-        ha="right", va="bottom", fontsize=Title_size_right, color=Title_color_right,fontweight=Title_bold_right,
-    transform=ax.transAxes)
+ax.text(x_start, top_row_y + title_gap_left, Title_left,
+        ha="left", va="bottom", fontsize=Title_size_left, color=Title_color_left, fontweight=Title_bold_left,
+        transform=trans_mixed)
+
+ax.text(x_end, top_row_y + title_gap_right, ar(Title_right),
+        ha="right", va="bottom", fontsize=Title_size_right, color=Title_color_right, fontweight=Title_bold_right,
+        transform=trans_mixed)
 
 # ─────6. تنظيف المحاور وحفظ الملف──────────────────────────────────────────────
 
 ax.set_xlim(-0.05, 1.05)
-ax.set_ylim(-0.8, (n_metrics - 1) * row_height + 0.8)
+ax.set_ylim(-0.8, (n_metrics - 1) * row_height + max(title_gap_left, title_gap_right) + 0.5)
 ax.axis("off")
 
 plt.tight_layout()
