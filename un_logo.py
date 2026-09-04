@@ -202,7 +202,7 @@ for row_idx, metric in enumerate(METRICS):
 
             if item["is_special"]:
                 ax.text(xnorm, y_actual + 0.2,
-                        f"{item['val']:.2f}",
+                        f"{item['val']:.0f}",
                         ha="center", va="bottom",
                         fontsize=7.5, fontweight="bold",
                         color=item["color"], zorder=6)
