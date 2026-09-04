@@ -214,7 +214,7 @@ for row_idx, metric in enumerate(METRICS):
 
 
     # اسم المقياس على اليسار
-    ax.text(1.01, y, ar(metric),
+    ax.text(0.95, y, ar(metric),
     ha="left", va="center",
     fontsize=Metric_size, color=Metric_color, fontweight=Metric_bold,
     transform=ax.get_yaxis_transform())
