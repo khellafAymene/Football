@@ -19,7 +19,7 @@ from bidi.algorithm import get_display
 
 # 2. تحديد الخط والتخلص من مشاكل إشارة السالب
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Calibri', 'Segoe UI', 'Tahoma', 'Arial']
+plt.rcParams['font.sans-serif'] = ['Segoe UI', 'Calibri', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 
 df = dataset.copy()
