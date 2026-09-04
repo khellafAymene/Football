@@ -19,10 +19,9 @@ from bidi.algorithm import get_display
 
 # 2. تحديد الخط والتخلص من مشاكل إشارة السالب
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = [ 'Calibri','Segoe UI', 'Calibri', 'Tahoma', 'Arial']
+plt.rcParams['font.sans-serif'] = ['Calibri', 'Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 
-df = dataset.copy()
 # 3. إعداد المشكل لحل مشكلة المربعات (تعطيل الـ ligatures)
 reshaper = arabic_reshaper.ArabicReshaper(configuration={
     'delete_harakat': True,
@@ -35,12 +34,13 @@ def ar(text):
         return ""
     return get_display(reshaper.reshape(str(text)))
 
-# ─────0. تحديد القيم────────────────────────────────────────────────────────────
 
+
+# ─────0. تحديد القيم────────────────────────────────────────────────────────────
 
 # 1 العناوين
 
-Title_left = "أفضل فريق"				             # العنوان الأيسر (أصبح الأفضل على اليسار)
+Title_left = "أقوى فريق"              # العنوان الأيسر (أصبح الأفضل على اليسار)
 Title_size_left = 11                         # حجم العنوان الأيسر
 Title_bold_left = None                      # سمك العنوان الأيسر ولتفعيلها السمك غيرها إلى Title_bold_left = "bold"
 Title_color_left = "#999999"              # لون كتابة العنوان الأيسر
@@ -58,20 +58,23 @@ title_gap_right = 0.40   # عدّل هذه القيمة لرفع/خفض العن
 
 # 2 المؤشرات
 
-Metric_size = 12                           # حجم المؤشرات
+Metric_size = 12                             # حجم المؤشرات
 Metric_bold = None                          # سمك المؤشرات ولتفعيلها Metric_bold = "bold"
 Metric_color = "#333333"                  # لون كتابة المأشرات
 
 # 3 خاص بإعدادات الشكل
 row_height = 0.63                 # إرجاع المسافة الأصلية لعدم الحاجة للإزاحة العمودية
-fig_width  = 9                  # عرض الشكل بالإنش
+fig_width  = 9                   # عرض الشكل بالإنش
 
 # 4 خاص بألوان المخطط
-COLOR_DOT      = "#C8C8C8"   # لون النقاط العادية (الفرق الأخرى)
-COLOR_BEST     = "#2ECC71"   # لون أفضل فريق  (أعلى قيمة)
-COLOR_WORST    = "#E74C3C"   # لون أسوأ فريق  (أدنى قيمة)
-COLOR_BG       = "#FFFFFF"   # لون خلفية المخطط
-COLOR_LABEL    = "#333333"   # لون النصوص
+COLOR_DOT        = "#C8C8C8"   # لون النقاط العادية (الفرق الأخرى)
+COLOR_BEST       = "#2ECC71"   # لون أفضل فريق  (أعلى قيمة)
+COLOR_WORST      = "#E74C3C"   # لون أسوأ فريق  (أدنى قيمة)
+COLOR_SELECTED_1 = "#3498DB"   # لون الفريق المختار الأول
+COLOR_SELECTED_2 = "#9B59B6"   # لون الفريق المختار الثاني
+COLOR_BG         = "#FFFFFF"   # لون خلفية المخطط
+COLOR_LABEL      = "#333333"   # لون النصوص
+
 
 
 #-----------------------------------------------------------------------------------
@@ -112,6 +115,9 @@ def get_logo(url):
 
 url_map = dataset.drop_duplicates('TEAM').set_index('TEAM')['URL LOGO']
 
+SELECTED_TEAM_1 = dataset["SELECTED TEAM 1"][0]
+SELECTED_TEAM_2 = dataset["SELECTED TEAM 2"][0]
+
 METRICS = dataset["METRIC"].unique()
 
 pivot = dataset.pivot_table(
@@ -126,6 +132,14 @@ pivot.insert(0, 'URL LOGO', url_map)
 pivot   = pivot.reset_index()
 dataset = pivot
 
+# البحث عن الأعمدة التي تحتوي على "%" في اسمها
+cols = [col for col in dataset.columns if "%" in col]
+
+
+
+# ضرب القيم في تلك الأعمدة بـ 100
+dataset[cols] = dataset[cols]
+
 all_urls = dataset["URL LOGO"].unique().tolist()
 preload_logos(all_urls)
 
@@ -135,7 +149,7 @@ preload_logos(all_urls)
 n_metrics  = len(METRICS)
 fig_height = n_metrics * row_height + 1.2
 
-fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=300)
+fig, ax = plt.subplots(figsize=(fig_width, fig_height),dpi=300)
 fig.patch.set_facecolor(COLOR_BG)
 ax.set_facecolor(COLOR_BG)
 
@@ -158,8 +172,29 @@ for row_idx, metric in enumerate(METRICS):
     best_team  = col_data.loc[col_data[metric].idxmax(), "TEAM"]
     worst_team = col_data.loc[col_data[metric].idxmin(), "TEAM"]
 
-    # ─── جمع جميع الفرق مع تمييز الأفضل والأسوأ ───────────────────────────────
-    all_teams = []
+    worst_x_bound = x_end
+    best_x_bound  = x_start
+
+    # معرفة القيمة الرقمية للأفضل والأسوأ في هذا الصف
+    best_val  = col_data[metric].max()
+    worst_val = col_data[metric].min()
+    
+    # التحقق مما إذا كان أحد الفريقين المختارين يملك نفس قيمة الأفضل أو الأسوأ
+    selected1_row = col_data[col_data["TEAM"] == SELECTED_TEAM_1]
+    selected2_row = col_data[col_data["TEAM"] == SELECTED_TEAM_2]
+    selected_has_best_val  = False
+    selected_has_worst_val = False
+
+    for sel_row in (selected1_row, selected2_row):
+        if not sel_row.empty:
+            sel_val = sel_row[metric].values[0]
+            if abs(sel_val - best_val) < 1e-9:
+                selected_has_best_val = True
+            if abs(sel_val - worst_val) < 1e-9:
+                selected_has_worst_val = True
+
+    # ─── جمع الفرق المميزة ────────────────────────────────────────────────────
+    special_teams = []
 
     for _, row in col_data.iterrows():
         team = row["TEAM"]
@@ -170,51 +205,111 @@ for row_idx, metric in enumerate(METRICS):
         # والقيمة الأدنى تقع بالقرب من x_end (اليمين) -> ترتيب من اليمين إلى اليسار
         xnorm = x_start + (1 - ((val - min_val) / rng)) * x_range
 
-        is_best  = (team == best_team)
-        is_worst = (team == worst_team)
+        is_best      = (team == best_team)
+        is_worst     = (team == worst_team)
+        is_selected1 = (team == SELECTED_TEAM_1)
+        is_selected2 = (team == SELECTED_TEAM_2)
+        is_selected  = is_selected1 or is_selected2
 
-        if is_best:
-            color = COLOR_BEST
-        elif is_worst:
-            color = COLOR_WORST
+        # قواعـد التصفية الذكية:
+        # 1. إذا كانت قيمة أحد الفريقين المختارين تساوي الأفضل، نتجاهل أي فريق أفضل آخر (غير المختارَين)
+        if is_best and selected_has_best_val and not is_selected:
+            continue
+        # 2. إذا كانت قيمة أحد الفريقين المختارين تساوي الأسوأ، نتجاهل أي فريق أسوأ آخر (غير المختارَين)
+        if is_worst and selected_has_worst_val and not is_selected:
+            continue
+
+        if is_best or is_worst or is_selected:
+            if is_selected1:
+                border_color = COLOR_SELECTED_1
+            elif is_selected2:
+                border_color = COLOR_SELECTED_2
+            elif is_best:
+                border_color = COLOR_BEST
+            else:
+                border_color = COLOR_WORST
+
+            special_teams.append({
+                "team": team, "val": val, "url": url,
+                "xnorm": xnorm, "color": border_color,
+                "fixed": (is_best or is_worst)   # الأفضل والأسوأ يبقيان ثابتين ولا يُزاحان
+            })
         else:
-            color = COLOR_LABEL
+            # نقطة رمادية عادية
+            ax.scatter(xnorm, y, s=55, color=COLOR_DOT,
+                       zorder=3, edgecolors="white", linewidths=0.5, alpha=0.75)
 
-        all_teams.append({
-            "team": team, "val": val, "url": url,
-            "xnorm": xnorm, "color": color,
-            "is_special": is_best or is_worst
-        })
+    # ترتيب العناصر من اليسار إلى اليمين بناءً على قيمها الأصلية
+    special_teams.sort(key=lambda t: t["xnorm"])  
 
-    # ─── رسم جميع العناصر (بدون معالجة تداخل) ─────────────────────────────────
-    for item in all_teams:
+    # ─── خوارزمية حل التداخل (الأفضل والأسوأ ثابتان، الإزاحة تطال الفرق المختارة فقط) ───
+    n_special = len(special_teams)
+    if n_special > 0:
+        x_positions = [item["xnorm"] for item in special_teams]
+        fixed_flags = [item["fixed"] for item in special_teams]
+
+        for _ in range(50):
+            moved = False
+            for i in range(n_special - 1):
+                gap = x_positions[i+1] - x_positions[i]
+                if gap < LOGO_WIDTH:
+                    overlap = LOGO_WIDTH - gap
+                    left_fixed  = fixed_flags[i]
+                    right_fixed = fixed_flags[i+1]
+
+                    if left_fixed and right_fixed:
+                        # كلاهما ثابت (حالة نادرة جداً) - لا يمكن حلها بالإزاحة
+                        continue
+                    elif left_fixed:
+                        # العنصر الأيسر ثابت (الأفضل، بعد عكس الاتجاه) → يتحرك الأيمن فقط بكامل مقدار التداخل
+                        x_positions[i+1] += overlap
+                    elif right_fixed:
+                        # العنصر الأيمن ثابت (الأسوأ، بعد عكس الاتجاه) → يتحرك الأيسر فقط بكامل مقدار التداخل
+                        x_positions[i]   -= overlap
+                    else:
+                        # لا شيء ثابت هنا → توزيع الإزاحة كالمعتاد
+                        mid_overlap = (x_positions[i+1] + x_positions[i]) / 2
+                        if mid_overlap < 0.5:
+                            x_positions[i]   += overlap * 0.2
+                            x_positions[i+1] += overlap * 0.8
+                        else:
+                            x_positions[i]   -= overlap * 0.8
+                            x_positions[i+1] -= overlap * 0.2
+
+                    moved = True
+            if not moved:
+                break
+
+        for i in range(n_special):
+            if fixed_flags[i]:
+                # لا تُقيَّد (clamp) مواقع الأفضل/الأسوأ حتى لا تتغير عن قيمتها الأصلية
+                special_teams[i]["xnorm"] = x_positions[i]
+            else:
+                special_teams[i]["xnorm"] = max(x_start, min(x_end, x_positions[i]))
+
+    # ─── رسم العناصر بعد تعديل مواقعها ────────────────────────────────────────
+    for item in special_teams:
         xnorm = item["xnorm"]
         y_actual = y
 
         logo = get_logo(item["url"])
         if logo is not None:
-            # الأفضل/الأسوأ بحجم أكبر قليلاً وقيمة رقمية ملوّنة فوقها
-            zoom = 0.8 if item["is_special"] else 0.6
-            img_box = OffsetImage(logo, zoom=zoom)
+            img_box = OffsetImage(logo, zoom=0.8)
             ab = AnnotationBbox(img_box, (xnorm, y_actual),
                                 frameon=False, zorder=5)
             ax.add_artist(ab)
-
-            if item["is_special"]:
-                ax.text(xnorm, y_actual + 0.2,
-                        f"{item['val']:.0f}",
-                        ha="center", va="bottom",
-                        fontsize=7.5, fontweight="bold",
-                        color=item["color"], zorder=6)
+            ax.text(xnorm, y_actual + 0.2,
+                    f"{item['val']:02.0f}",
+                    ha="center", va="bottom",
+                    fontsize=7.5, fontweight="bold",
+                    color=item["color"], zorder=6)
         else:
-            size = 120 if item["is_special"] else 55
-            ax.scatter(xnorm, y_actual, s=size, color=item["color"] if item["is_special"] else COLOR_DOT,
-                    zorder=5, edgecolors="white", linewidths=1 if item["is_special"] else 0.5,
-                    alpha=1 if item["is_special"] else 0.75)
+            ax.scatter(xnorm, y_actual, s=120, color=item["color"],
+                    zorder=5, edgecolors="white", linewidths=1)
 
 
     # اسم المقياس على اليسار
-    ax.text(0.95, y, ar(metric),
+    ax.text(0.95, y, metric,
     ha="left", va="center",
     fontsize=Metric_size, color=Metric_color, fontweight=Metric_bold,
     transform=ax.get_yaxis_transform())
@@ -233,9 +328,13 @@ ax.text(x_start, top_row_y + title_gap_left, Title_left,
         ha="left", va="bottom", fontsize=Title_size_left, color=Title_color_left, fontweight=Title_bold_left,
         transform=trans_mixed)
 
-ax.text(x_end, top_row_y + title_gap_right, ar(Title_right),
+ax.text(x_end, top_row_y + title_gap_right, Title_right,
         ha="right", va="bottom", fontsize=Title_size_right, color=Title_color_right, fontweight=Title_bold_right,
         transform=trans_mixed)
+
+
+# ─── دليل الألوان (Legend) للفريقين المختارين ─────────────────────────────────
+
 
 # ─────6. تنظيف المحاور وحفظ الملف──────────────────────────────────────────────
 
@@ -244,5 +343,6 @@ ax.set_ylim(-0.8, (n_metrics - 1) * row_height + max(title_gap_left, title_gap_r
 ax.axis("off")
 
 plt.tight_layout()
+fig.savefig('output_chart.png', dpi=300) # حفظ الصورة بدقة عالية
 plt.show()
 plt.close(fig)

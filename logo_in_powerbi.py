@@ -1,16 +1,15 @@
-import traceback
-import matplotlib.pyplot as plt
+import base64
 import requests
 
+api_url = "https://api.github.com/repos/khellafAymene/Football/contents/un_logo.py?ref=main"
+headers = {
+    "Authorization": "token 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",
+    "Accept": "application/vnd.github.v3+json"
+}
 
-# رابط نظيف وثابت بدون أي توكن في النهاية
-url = "https://raw.githubusercontent.com/khellafAymene/Football/refs/heads/main/un_logo.py"
-
-# ضع التوكن الدائم الخاص بك هنا
-headers = {"Authorization": "token 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"}
-
-res = requests.get(url, headers=headers, timeout=10)
+res = requests.get(api_url, headers=headers, timeout=10)
 res.raise_for_status()
 
-# تنفيذ الكود وتمرير المتغيرات
-exec(res.text, globals(), locals())
+# جلب المحتوى وفك التشفير
+code = base64.b64decode(res.json()["content"]).decode("utf-8")
+exec(code, globals(), locals())
