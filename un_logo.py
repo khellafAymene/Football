@@ -214,10 +214,10 @@ for row_idx, metric in enumerate(METRICS):
 
 
     # اسم المقياس على اليسار
-    ax.text(-0.01, y, metric,
-        ha="right", va="center",
-        fontsize=Metric_size, color=Metric_color, fontweight=Metric_bold,
-        transform=ax.get_yaxis_transform())
+    ax.text(1.01, y, ar(metric),
+    ha="left", va="center",
+    fontsize=Metric_size, color=Metric_color, fontweight=Metric_bold,
+    transform=ax.get_yaxis_transform())
 
 
 # ─────5. رأس المخطط (الحل الجديد: y بوحدات data بدلاً من نسبة axes)────────────
