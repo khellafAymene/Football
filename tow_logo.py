@@ -22,6 +22,14 @@ plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['Calibri', 'Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 
+# === تعديل 1 ===
+# تحويل النصوص داخل ملف SVG إلى "مسارات/Paths" بدل الاعتماد على خط النظام.
+# السبب: يضمن ظهور النص العربي (بعد إعادة تشكيله عبر arabic_reshaper/bidi)
+# بنفس الشكل تمامًا على أي جهاز أو برنامج يفتح ملف الـ SVG، حتى لو لم يكن
+# الخط المستخدم مثبتًا على ذلك الجهاز. بدون هذا الإعداد، فتح الملف على
+# جهاز آخر قد يُظهر النص بخط مختلف أو بشكل غير صحيح.
+plt.rcParams['svg.fonttype'] = 'path'
+
 # 3. إعداد المشكل لحل مشكلة المربعات (تعطيل الـ ligatures)
 reshaper = arabic_reshaper.ArabicReshaper(configuration={
     'delete_harakat': True,
@@ -40,19 +48,17 @@ def ar(text):
 
 # 1 العناوين
 
-Title_left = "أفضل أداء"              # العنوان الأيسر (أصبح الأفضل على اليسار)
+Title_left = "الأداء الأقل"              # العنوان الأيسر (أصبح الأفضل على اليسار)
 Title_size_left = 11                         # حجم العنوان الأيسر
 Title_bold_left = None                      # سمك العنوان الأيسر ولتفعيلها السمك غيرها إلى Title_bold_left = "bold"
 Title_color_left = "#999999"              # لون كتابة العنوان الأيسر
 
-Title_right = "أضعف أداء"             # العنوان الرئيسي (أصبح الأسوأ على اليمين)
+Title_right = "الأداء الأفضل"             # العنوان الرئيسي (أصبح الأسوأ على اليمين)
 Title_size_right = 11                        # حجم العنوان الرئيسي
 Title_bold_right = None                     # سمك العنوان الرئيسي ولتفعيلها السمك غيرها إلى Title_bold_right = "bold"
 Title_color_right = "#999999"             # لون كتابة العنوان الرئيسي
 
 # ─── إعداد ارتفاع العنوانين فوق أول صف (الحل الجديد) ─────────────────────────
-# title_gap: مسافة ثابتة (بوحدات row_height) بين أعلى صف بيانات والعنوان
-# هذه القيمة لا تتأثر بعدد المؤشرات إطلاقًا، عكس الطريقة القديمة (transAxes)
 title_gap_left  = 0.40   # عدّل هذه القيمة لرفع/خفض العنوان الأيسر
 title_gap_right = 0.40   # عدّل هذه القيمة لرفع/خفض العنوان الأيمن
 
@@ -86,21 +92,20 @@ x_range = x_end - x_start
 # ─── إعدادات حل التداخل ───────────────────────────────────────────────────────
 LOGO_WIDTH = 0.1   # عتبة المسافة بين شعارين لاعتبارهما "متداخلَين"
 Y_OFFSET   = 0   # مقدار الإزاحة العمودية عند التداخل
-
+target_px  = 28    # الحجم الظاهري المطلوب لكل شعار بالبكسل التقريبي عند dpi=300
 
 # ─────1. تجهيز الشعارات─────────────────────────────────────────────────────────
 
 _logo_cache = {}
 
-def preload_logos(url_list, size=(28, 28)):
-    """تحميل جميع الشعارات مرة واحدة في البداية"""
+def preload_logos(url_list):
+    """تحميل جميع الشعارات مرة واحدة في البداية، بأقصى دقة متاحة دون تصغير"""
     for url in url_list:
         if url in _logo_cache:
             continue
         try:
             response = requests.get(url, timeout=5)
             img = Image.open(BytesIO(response.content)).convert("RGBA")
-            img = img.resize(size, Image.LANCZOS)
             _logo_cache[url] = np.array(img)
         except Exception:
             _logo_cache[url] = None
@@ -131,14 +136,6 @@ pivot.index.name   = 'TEAM'
 pivot.insert(0, 'URL LOGO', url_map)
 pivot   = pivot.reset_index()
 dataset = pivot
-
-# البحث عن الأعمدة التي تحتوي على "%" في اسمها
-cols = [col for col in dataset.columns if "%" in col]
-
-
-
-# ضرب القيم في تلك الأعمدة بـ 100
-dataset[cols] = dataset[cols]
 
 all_urls = dataset["URL LOGO"].unique().tolist()
 preload_logos(all_urls)
@@ -175,11 +172,9 @@ for row_idx, metric in enumerate(METRICS):
     worst_x_bound = x_end
     best_x_bound  = x_start
 
-    # معرفة القيمة الرقمية للأفضل والأسوأ في هذا الصف
     best_val  = col_data[metric].max()
     worst_val = col_data[metric].min()
-    
-    # التحقق مما إذا كان أحد الفريقين المختارين يملك نفس قيمة الأفضل أو الأسوأ
+
     selected1_row = col_data[col_data["TEAM"] == SELECTED_TEAM_1]
     selected2_row = col_data[col_data["TEAM"] == SELECTED_TEAM_2]
     selected_has_best_val  = False
@@ -201,9 +196,7 @@ for row_idx, metric in enumerate(METRICS):
         val  = row[metric]
         url  = row["URL LOGO"]
 
-        # تم عكس الاتجاه: القيمة الأعلى تقع الآن بالقرب من x_start (اليسار)
-        # والقيمة الأدنى تقع بالقرب من x_end (اليمين) -> ترتيب من اليمين إلى اليسار
-        xnorm = x_start + (1 - ((val - min_val) / rng)) * x_range
+        xnorm = x_start + (((val - min_val) / rng)) * x_range
 
         is_best      = (team == best_team)
         is_worst     = (team == worst_team)
@@ -211,11 +204,8 @@ for row_idx, metric in enumerate(METRICS):
         is_selected2 = (team == SELECTED_TEAM_2)
         is_selected  = is_selected1 or is_selected2
 
-        # قواعـد التصفية الذكية:
-        # 1. إذا كانت قيمة أحد الفريقين المختارين تساوي الأفضل، نتجاهل أي فريق أفضل آخر (غير المختارَين)
         if is_best and selected_has_best_val and not is_selected:
             continue
-        # 2. إذا كانت قيمة أحد الفريقين المختارين تساوي الأسوأ، نتجاهل أي فريق أسوأ آخر (غير المختارَين)
         if is_worst and selected_has_worst_val and not is_selected:
             continue
 
@@ -232,17 +222,14 @@ for row_idx, metric in enumerate(METRICS):
             special_teams.append({
                 "team": team, "val": val, "url": url,
                 "xnorm": xnorm, "color": border_color,
-                "fixed": (is_best or is_worst)   # الأفضل والأسوأ يبقيان ثابتين ولا يُزاحان
+                "fixed": (is_best or is_worst)
             })
         else:
-            # نقطة رمادية عادية
             ax.scatter(xnorm, y, s=55, color=COLOR_DOT,
                        zorder=3, edgecolors="white", linewidths=0.5, alpha=0.75)
 
-    # ترتيب العناصر من اليسار إلى اليمين بناءً على قيمها الأصلية
-    special_teams.sort(key=lambda t: t["xnorm"])  
+    special_teams.sort(key=lambda t: t["xnorm"])
 
-    # ─── خوارزمية حل التداخل (الأفضل والأسوأ ثابتان، الإزاحة تطال الفرق المختارة فقط) ───
     n_special = len(special_teams)
     if n_special > 0:
         x_positions = [item["xnorm"] for item in special_teams]
@@ -258,16 +245,12 @@ for row_idx, metric in enumerate(METRICS):
                     right_fixed = fixed_flags[i+1]
 
                     if left_fixed and right_fixed:
-                        # كلاهما ثابت (حالة نادرة جداً) - لا يمكن حلها بالإزاحة
                         continue
                     elif left_fixed:
-                        # العنصر الأيسر ثابت (الأفضل، بعد عكس الاتجاه) → يتحرك الأيمن فقط بكامل مقدار التداخل
                         x_positions[i+1] += overlap
                     elif right_fixed:
-                        # العنصر الأيمن ثابت (الأسوأ، بعد عكس الاتجاه) → يتحرك الأيسر فقط بكامل مقدار التداخل
                         x_positions[i]   -= overlap
                     else:
-                        # لا شيء ثابت هنا → توزيع الإزاحة كالمعتاد
                         mid_overlap = (x_positions[i+1] + x_positions[i]) / 2
                         if mid_overlap < 0.5:
                             x_positions[i]   += overlap * 0.2
@@ -282,7 +265,6 @@ for row_idx, metric in enumerate(METRICS):
 
         for i in range(n_special):
             if fixed_flags[i]:
-                # لا تُقيَّد (clamp) مواقع الأفضل/الأسوأ حتى لا تتغير عن قيمتها الأصلية
                 special_teams[i]["xnorm"] = x_positions[i]
             else:
                 special_teams[i]["xnorm"] = max(x_start, min(x_end, x_positions[i]))
@@ -294,7 +276,8 @@ for row_idx, metric in enumerate(METRICS):
 
         logo = get_logo(item["url"])
         if logo is not None:
-            img_box = OffsetImage(logo, zoom=0.8)
+            zoom = target_px / logo.shape[0]
+            img_box = OffsetImage(logo, zoom=zoom, resample=True)
             ab = AnnotationBbox(img_box, (xnorm, y_actual),
                                 frameon=False, zorder=5)
             ax.add_artist(ab)
@@ -308,20 +291,16 @@ for row_idx, metric in enumerate(METRICS):
                     zorder=5, edgecolors="white", linewidths=1)
 
 
-    # اسم المقياس على اليسار
     ax.text(0.95, y, metric,
     ha="left", va="center",
     fontsize=Metric_size, color=Metric_color, fontweight=Metric_bold,
     transform=ax.get_yaxis_transform())
 
 
-# ─────5. رأس المخطط (الحل الجديد: y بوحدات data بدلاً من نسبة axes)────────────
+# ─────5. رأس المخطط─────────────────────────────────────────────────────────────
 
-# موضع أول صف (أعلى صف بيانات فعلي)
 top_row_y = (n_metrics - 1) * row_height
 
-# x نسبة من عرض المحور (axes) — y بوحدات البيانات (data)
-# بهذا يبقى العنوان دائمًا على مسافة ثابتة فوق أول صف، بغض النظر عن عدد المؤشرات
 trans_mixed = mtransforms.blended_transform_factory(ax.transAxes, ax.transData)
 
 ax.text(x_start, top_row_y + title_gap_left, Title_left,
@@ -333,9 +312,6 @@ ax.text(x_end, top_row_y + title_gap_right, Title_right,
         transform=trans_mixed)
 
 
-# ─── دليل الألوان (Legend) للفريقين المختارين ─────────────────────────────────
-
-
 # ─────6. تنظيف المحاور وحفظ الملف──────────────────────────────────────────────
 
 ax.set_xlim(-0.05, 1.05)
@@ -343,6 +319,25 @@ ax.set_ylim(-0.8, (n_metrics - 1) * row_height + max(title_gap_left, title_gap_r
 ax.axis("off")
 
 plt.tight_layout()
-fig.savefig('output_chart.png', dpi=300) # حفظ الصورة بدقة عالية
-plt.show()
+
+# === تعديل 2 ===
+# الحفظ بصيغة SVG (متجهة/Vector) بدل الاعتماد فقط على PNG.
+# - bbox_inches='tight' و pad_inches=0.1: يمنعان اقتصاص أي جزء من العناصر
+#   عند الحفظ بدقة عالية (مشكلة شائعة تظهر فجأة عند رفع dpi).
+# - facecolor=fig.get_facecolor(): يضمن خلفية بيضاء نقية بدل أن تصبح
+#   شفافة بالخطأ (السلوك الافتراضي لبعض إصدارات matplotlib مع savefig).
+# النصوص والخطوط والنقاط ستكون حادة 100% بلا أي بكسلة عند التكبير.
+# (الشعارات نفسها تبقى محكومة بدقة الصورة المصدر كما هي، راجع الملاحظة أعلاه)
+fig.savefig('output_chart.svg', format='svg',
+            bbox_inches='tight', pad_inches=0.1,
+            facecolor=fig.get_facecolor())
+
+# === تعديل 3 ===
+# نسخة PNG بجودة قصوى كبديل، في حال احتجت صيغة نقطية لأي سبب
+# (مثل لصقها في PowerPoint/Word لا يدعم SVG بسهولة).
+# رفع dpi من 300 إلى 600 يضاعف عدد البكسلات في كل بوصة (دقة أعلى بكثير عند الطباعة/التكبير).
+fig.savefig('output_chart_hq.png', format='png', dpi=600,
+            bbox_inches='tight', pad_inches=0.1,
+            facecolor=fig.get_facecolor())
+
 plt.close(fig)

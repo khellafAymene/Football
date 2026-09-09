@@ -41,12 +41,12 @@ def ar(text):
 
 # 1 العناوين
 
-Title_left = "أفضل أداء"              # العنوان الأيسر (أصبح الأفضل على اليسار)
+Title_left = "الأداء الأقل"              # العنوان الأيسر (أصبح الأفضل على اليسار)
 Title_size_left = 11                         # حجم العنوان الأيسر
 Title_bold_left = None                      # سمك العنوان الأيسر ولتفعيلها السمك غيرها إلى Title_bold_left = "bold"
 Title_color_left = "#999999"              # لون كتابة العنوان الأيسر
 
-Title_right = "أضعف أداء"             # العنوان الرئيسي (أصبح الأسوأ على اليمين)
+Title_right = "الأداء الأفضل"             # العنوان الرئيسي (أصبح الأسوأ على اليمين)
 Title_size_right = 11                        # حجم العنوان الرئيسي
 Title_bold_right = None                     # سمك العنوان الرئيسي ولتفعيلها السمك غيرها إلى Title_bold_right = "bold"
 Title_color_right = "#999999"             # لون كتابة العنوان الرئيسي
@@ -81,7 +81,7 @@ SEPARATOR_STYLE  = "-"         # نمط الخط: "-" متصل، "--" متقطع
 SHOW_TERTILE_LINES  = True        # إظهار/إخفاء الخطين العموديين
 TERTILE_COLOR       = "#A7A7A7"   # لون الخطين
 TERTILE_WIDTH       = 0.8         # سماكة الخطين
-TERTILE_STYLE       = "-"        # نمط الخط: "-" متصل، "--" متقطع، ":" منقط
+TERTILE_STYLE       = "--"        # نمط الخط: "-" متصل، "--" متقطع، ":" منقط
 
 #-----------------------------------------------------------------------------------
 # حدود موضع النقاط أفقياً (بين 8% و92% من عرض الرسم)
@@ -163,7 +163,7 @@ for row_idx, metric in enumerate(METRICS):
     # بدل الاعتماد على القيمة الفعلية (val) لتحديد الموقع الأفقي، نعتمد على
     # "رتبة" الفريق بين بقية الفرق. هذا يضمن مسافة ثابتة بين كل فريقين
     # متجاورين ويمنع تداخل الشعارات عند تقارب القيم.
-    sorted_data = col_data.sort_values(metric, ascending=False).reset_index(drop=True)
+    sorted_data = col_data.sort_values(metric, ascending=True).reset_index(drop=True)
     n_teams = len(sorted_data)
 
     all_teams = []
@@ -201,7 +201,7 @@ for row_idx, metric in enumerate(METRICS):
 
         logo = get_logo(item["url"])
         if logo is not None:
-            zoom = 0.8 if item["is_special"] else 0.6
+            zoom = 0.8 if item["is_special"] else 0.8
             img_box = OffsetImage(logo, zoom=zoom)
             ab = AnnotationBbox(img_box, (xnorm, y_actual),
                                 frameon=False, zorder=5)
@@ -250,11 +250,6 @@ if SHOW_SEPARATOR:
                 transform=trans_separator, clip_on=False)
 
 # ─────4ج. رسم خطين عموديين يقسمان الفرق إلى 3 مجموعات (أفضل / وسط / أضعف) ──────
-
-SHOW_TERTILE_LINES  = True        # إظهار/إخفاء الخطين العموديين
-TERTILE_COLOR       = "#A7A7A7"   # لون الخطين
-TERTILE_WIDTH       = 1.0         # سماكة الخطين
-TERTILE_STYLE       = "-"        # نمط الخط: "-" متصل، "--" متقطع، ":" منقط
 
 if SHOW_TERTILE_LINES:
     total_teams = dataset['TEAM'].nunique()
