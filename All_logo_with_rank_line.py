@@ -237,7 +237,7 @@ if SHOW_SEPARATOR:
     # transform مختلط: x بإحداثيات المحور (axes fraction)، y بإحداثيات البيانات
     trans_separator = mtransforms.blended_transform_factory(ax.transAxes, ax.transData)
 
-    separator_x_end = 1.50   # عدّل هذه القيمة لتتحكم بمدى امتداد الخط تحت اسم المؤشر
+    separator_x_end = 30   # عدّل هذه القيمة لتتحكم بمدى امتداد الخط تحت اسم المؤشر
 
     for row_idx in range(n_metrics - 1):
         y_current = (n_metrics - 1 - row_idx) * row_height
