@@ -74,10 +74,14 @@ COLOR_LABEL    = "#333333"   # لون النصوص
 
 # 5 خاص بالخط الفاصل بين المؤشرات
 SHOW_SEPARATOR   = True        # إظهار/إخفاء الخط الفاصل بين كل إحصائية والأخرى
-SEPARATOR_COLOR  = "#353434"   # لون الخط الفاصل
+SEPARATOR_COLOR  = "#A7A7A7"   # لون الخط الفاصل
 SEPARATOR_WIDTH  = 0.8         # سماكة الخط الفاصل
 SEPARATOR_STYLE  = "-"         # نمط الخط: "-" متصل، "--" متقطع، ":" منقط
 
+SHOW_TERTILE_LINES  = True        # إظهار/إخفاء الخطين العموديين
+TERTILE_COLOR       = "#A7A7A7"   # لون الخطين
+TERTILE_WIDTH       = 0.8         # سماكة الخطين
+TERTILE_STYLE       = "-"        # نمط الخط: "-" متصل، "--" متقطع، ":" منقط
 
 #-----------------------------------------------------------------------------------
 # حدود موضع النقاط أفقياً (بين 8% و92% من عرض الرسم)
@@ -209,6 +213,12 @@ for row_idx, metric in enumerate(METRICS):
                         ha="center", va="bottom",
                         fontsize=7.5, fontweight="bold",
                         color=item["color"], zorder=6)
+            else:
+                ax.text(xnorm, y_actual + 0.2,
+                        f"{item['val']:.0f}",
+                        ha="center", va="bottom",
+                        fontsize=6.5,
+                        color=COLOR_LABEL, zorder=6)
         else:
             size = 120 if item["is_special"] else 55
             ax.scatter(xnorm, y_actual, s=size, color=item["color"] if item["is_special"] else COLOR_DOT,
@@ -222,19 +232,63 @@ for row_idx, metric in enumerate(METRICS):
     fontsize=Metric_size, color=Metric_color, fontweight=Metric_bold,
     transform=ax.get_yaxis_transform())
 
-
 # ─────4ب. رسم الخطوط الفاصلة بين المؤشرات─────────────────────────────────────
 if SHOW_SEPARATOR:
+    # transform مختلط: x بإحداثيات المحور (axes fraction)، y بإحداثيات البيانات
+    trans_separator = mtransforms.blended_transform_factory(ax.transAxes, ax.transData)
+
+    separator_x_end = 1.50   # عدّل هذه القيمة لتتحكم بمدى امتداد الخط تحت اسم المؤشر
+
     for row_idx in range(n_metrics - 1):
         y_current = (n_metrics - 1 - row_idx) * row_height
         y_next    = (n_metrics - 1 - (row_idx + 1)) * row_height
         y_mid     = (y_current + y_next) / 2
 
-        ax.plot([x_start, x_end], [y_mid+0.05, y_mid+0.05],
+        ax.plot([x_start, separator_x_end], [y_mid + 0.05, y_mid + 0.05],
                 color=SEPARATOR_COLOR, linewidth=SEPARATOR_WIDTH,
-                linestyle=SEPARATOR_STYLE, zorder=1)
+                linestyle=SEPARATOR_STYLE, zorder=1,
+                transform=trans_separator, clip_on=False)
 
+# ─────4ج. رسم خطين عموديين يقسمان الفرق إلى 3 مجموعات (أفضل / وسط / أضعف) ──────
 
+SHOW_TERTILE_LINES  = True        # إظهار/إخفاء الخطين العموديين
+TERTILE_COLOR       = "#A7A7A7"   # لون الخطين
+TERTILE_WIDTH       = 1.0         # سماكة الخطين
+TERTILE_STYLE       = "-"        # نمط الخط: "-" متصل، "--" متقطع، ":" منقط
+
+if SHOW_TERTILE_LINES:
+    total_teams = dataset['TEAM'].nunique()
+
+    base      = total_teams // 3
+    remainder = total_teams % 3
+
+    if remainder == 0:
+        sizes = [base, base, base]
+    elif remainder == 1:
+        sizes = [base, base + 1, base]      # الفرد الزائد يروح للوسط
+    else:  # remainder == 2
+        sizes = [base, base + 2, base]      # الفرديّن الزوائد يروحوا للوسط
+
+    boundary1 = sizes[0]                 # عدد الفرق بالمجموعة الأولى (يسار)
+    boundary2 = sizes[0] + sizes[1]       # نهاية المجموعة الوسطى
+
+    def rank_to_x(rank):
+        """تحويل رتبة الفريق (0-indexed) إلى موضع أفقي xnorm"""
+        if total_teams > 1:
+            return x_start + (rank / (total_teams - 1)) * x_range
+        return (x_start + x_end) / 2
+
+    # موضع الخط = نقطة الوسط بين آخر عنصر بمجموعة وأول عنصر بالمجموعة التالية
+    x_line1 = (rank_to_x(boundary1 - 1) + rank_to_x(boundary1)) / 2
+    x_line2 = (rank_to_x(boundary2 - 1) + rank_to_x(boundary2)) / 2
+
+    y_top    = (n_metrics - 1) * row_height + max(title_gap_left, title_gap_right)
+    y_bottom = -0.6
+
+    for x_line in (x_line1, x_line2):
+        ax.plot([x_line, x_line], [y_bottom, y_top],
+                color=TERTILE_COLOR, linewidth=TERTILE_WIDTH,
+                linestyle=TERTILE_STYLE, zorder=2)
 # ─────5. رأس المخطط────────────────────────────────────────────────────────────
 
 top_row_y = (n_metrics - 1) * row_height
