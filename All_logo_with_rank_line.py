@@ -283,7 +283,7 @@ if SHOW_TERTILE_LINES:
     x_line2 = (rank_to_x(boundary2 - 1) + rank_to_x(boundary2)) / 2
 
     y_top    = (n_metrics - 1) * row_height + max(title_gap_left, title_gap_right)
-    y_bottom = -0.6
+    y_bottom = -0.3
 
     for x_line in (x_line1, x_line2):
         ax.plot([x_line, x_line], [y_bottom, y_top],
