@@ -39,12 +39,12 @@ def ar(text):
 
 # 1 العناوين
 
-Title_left = "أفضل أداء"              # العنوان الأيسر (أصبح الأفضل على اليسار)
+Title_left = "الأداء الأقل"              # العنوان الأيسر (أصبح الأفضل على اليسار)
 Title_size_left = 11                         # حجم العنوان الأيسر
 Title_bold_left = None                      # سمك العنوان الأيسر ولتفعيلها السمك غيرها إلى Title_bold_left = "bold"
 Title_color_left = "#999999"              # لون كتابة العنوان الأيسر
 
-Title_right = "أضعف أداء"             # العنوان الرئيسي (أصبح الأسوأ على اليمين)
+Title_right = "الأداء الأفضل"            # العنوان الرئيسي (أصبح الأسوأ على اليمين)
 Title_size_right = 11                        # حجم العنوان الرئيسي
 Title_bold_right = None                     # سمك العنوان الرئيسي ولتفعيلها السمك غيرها إلى Title_bold_right = "bold"
 Title_color_right = "#999999"             # لون كتابة العنوان الرئيسي
@@ -73,6 +73,12 @@ COLOR_SELECTED = "#3498DB"   # لون الفريق المختار
 COLOR_BG       = "#FFFFFF"   # لون خلفية المخطط
 COLOR_LABEL    = "#333333"   # لون النصوص
 
+# 5 خاص بالخط الفاصل بين المؤشرات
+SHOW_SEPARATOR   = True        # إظهار/إخفاء الخط الفاصل بين كل إحصائية والأخرى
+SEPARATOR_COLOR  = "#A7A7A7"   # لون الخط الفاصل
+SEPARATOR_WIDTH  = 0.8         # سماكة الخط الفاصل
+SEPARATOR_STYLE  = "-"         # نمط الخط: "-" متصل، "--" متقطع، ":" منقط
+
 
 
 #-----------------------------------------------------------------------------------
@@ -83,22 +89,20 @@ x_range = x_end - x_start
 
 # ─── إعدادات حل التداخل ───────────────────────────────────────────────────────
 LOGO_WIDTH = 0.1   # عتبة المسافة بين شعارين لاعتبارهما "متداخلَين"
-Y_OFFSET   = 0   # مقدار الإزاحة العمودية عند التداخل
-
+target_px  = 28    # الحجم الظاهري المطلوب لكل شعار بالبكسل التقريبي عند dpi=300
 
 # ─────1. تجهيز الشعارات─────────────────────────────────────────────────────────
 
 _logo_cache = {}
 
-def preload_logos(url_list, size=(28, 28)):
-    """تحميل جميع الشعارات مرة واحدة في البداية"""
+def preload_logos(url_list):
+    """تحميل جميع الشعارات مرة واحدة في البداية، بأقصى دقة متاحة دون تصغير"""
     for url in url_list:
         if url in _logo_cache:
             continue
         try:
             response = requests.get(url, timeout=5)
             img = Image.open(BytesIO(response.content)).convert("RGBA")
-            img = img.resize(size, Image.LANCZOS)
             _logo_cache[url] = np.array(img)
         except Exception:
             _logo_cache[url] = None
@@ -190,7 +194,7 @@ for row_idx, metric in enumerate(METRICS):
 
         # تم عكس الاتجاه: القيمة الأعلى الآن تقع بالقرب من x_start (اليسار)
         # والقيمة الأدنى تقع بالقرب من x_end (اليمين) -> ترتيب من اليمين إلى اليسار
-        xnorm = x_start + (1 - ((val - min_val) / rng)) * x_range
+        xnorm = x_start + (((val - min_val) / rng)) * x_range
 
         is_best     = (team == best_team)
         is_worst    = (team == worst_team)
@@ -277,7 +281,8 @@ for row_idx, metric in enumerate(METRICS):
 
         logo = get_logo(item["url"])
         if logo is not None:
-            img_box = OffsetImage(logo, zoom=0.8)
+            zoom = target_px / logo.shape[0]
+            img_box = OffsetImage(logo, zoom=zoom, resample=True)
             ab = AnnotationBbox(img_box, (xnorm, y_actual),
                                 frameon=False, zorder=5)
             ax.add_artist(ab)
@@ -298,7 +303,22 @@ for row_idx, metric in enumerate(METRICS):
     fontsize=Metric_size, color=Metric_color, fontweight=Metric_bold,
     transform=ax.get_yaxis_transform())
 
+# ─────4ب. رسم الخطوط الفاصلة بين المؤشرات─────────────────────────────────────
+if SHOW_SEPARATOR:
+    # transform مختلط: x بإحداثيات المحور (axes fraction)، y بإحداثيات البيانات
+    trans_separator = mtransforms.blended_transform_factory(ax.transAxes, ax.transData)
 
+    separator_x_end = 30   # عدّل هذه القيمة لتتحكم بمدى امتداد الخط تحت اسم المؤشر
+
+    for row_idx in range(n_metrics - 1):
+        y_current = (n_metrics - 1 - row_idx) * row_height
+        y_next    = (n_metrics - 1 - (row_idx + 1)) * row_height
+        y_mid     = (y_current + y_next) / 2
+
+        ax.plot([x_start, separator_x_end], [y_mid + 0.05, y_mid + 0.05],
+                color=SEPARATOR_COLOR, linewidth=SEPARATOR_WIDTH,
+                linestyle=SEPARATOR_STYLE, zorder=1,
+                transform=trans_separator, clip_on=False)
 # ─────5. رأس المخطط (الحل الجديد: y بوحدات data بدلاً من نسبة axes)────────────
 
 # موضع أول صف (أعلى صف بيانات فعلي)
@@ -318,10 +338,15 @@ ax.text(x_end, top_row_y + title_gap_right, Title_right,
 
 # ─────6. تنظيف المحاور وحفظ الملف──────────────────────────────────────────────
 
+
 ax.set_xlim(-0.05, 1.05)
 ax.set_ylim(-0.8, (n_metrics - 1) * row_height + max(title_gap_left, title_gap_right) + 0.5)
 ax.axis("off")
 
 plt.tight_layout()
-plt.show()
-plt.close(fig)
+
+
+fig.savefig('output_chart_hq.png', format='png', dpi=1200,
+            bbox_inches='tight', pad_inches=0,
+            facecolor=fig.get_facecolor())
+

@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import matplotlib.transforms as mtransforms
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
@@ -13,34 +12,11 @@ from io import BytesIO
 import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
-# 1. استيراد المكتبات
-import arabic_reshaper
-from bidi.algorithm import get_display
 
 # 2. تحديد الخط والتخلص من مشاكل إشارة السالب
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['Calibri', 'Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
-
-# === تعديل 1 ===
-# تحويل النصوص داخل ملف SVG إلى "مسارات/Paths" بدل الاعتماد على خط النظام.
-# السبب: يضمن ظهور النص العربي (بعد إعادة تشكيله عبر arabic_reshaper/bidi)
-# بنفس الشكل تمامًا على أي جهاز أو برنامج يفتح ملف الـ SVG، حتى لو لم يكن
-# الخط المستخدم مثبتًا على ذلك الجهاز. بدون هذا الإعداد، فتح الملف على
-# جهاز آخر قد يُظهر النص بخط مختلف أو بشكل غير صحيح.
-plt.rcParams['svg.fonttype'] = 'path'
-
-# 3. إعداد المشكل لحل مشكلة المربعات (تعطيل الـ ligatures)
-reshaper = arabic_reshaper.ArabicReshaper(configuration={
-    'delete_harakat': True,
-    'support_ligatures': False
-})
-
-# 4. دالة معالجة النصوص
-def ar(text):
-    if not text:
-        return ""
-    return get_display(reshaper.reshape(str(text)))
 
 
 
@@ -53,7 +29,7 @@ Title_size_left = 11                         # حجم العنوان الأيس�
 Title_bold_left = None                      # سمك العنوان الأيسر ولتفعيلها السمك غيرها إلى Title_bold_left = "bold"
 Title_color_left = "#999999"              # لون كتابة العنوان الأيسر
 
-Title_right = "الأداء الأفضل"             # العنوان الرئيسي (أصبح الأسوأ على اليمين)
+Title_right = "الأداء الأفضل"            # العنوان الرئيسي (أصبح الأسوأ على اليمين)
 Title_size_right = 11                        # حجم العنوان الرئيسي
 Title_bold_right = None                     # سمك العنوان الرئيسي ولتفعيلها السمك غيرها إلى Title_bold_right = "bold"
 Title_color_right = "#999999"             # لون كتابة العنوان الرئيسي
@@ -79,8 +55,13 @@ COLOR_WORST      = "#E74C3C"   # لون أسوأ فريق  (أدنى قيمة)
 COLOR_SELECTED_1 = "#3498DB"   # لون الفريق المختار الأول
 COLOR_SELECTED_2 = "#9B59B6"   # لون الفريق المختار الثاني
 COLOR_BG         = "#FFFFFF"   # لون خلفية المخطط
-COLOR_LABEL      = "#333333"   # لون النصوص
 
+
+# 5 خاص بالخط الفاصل بين المؤشرات
+SHOW_SEPARATOR   = True        # إظهار/إخفاء الخط الفاصل بين كل إحصائية والأخرى
+SEPARATOR_COLOR  = "#A7A7A7"   # لون الخط الفاصل
+SEPARATOR_WIDTH  = 0.8         # سماكة الخط الفاصل
+SEPARATOR_STYLE  = "-"         # نمط الخط: "-" متصل، "--" متقطع، ":" منقط
 
 
 #-----------------------------------------------------------------------------------
@@ -91,7 +72,6 @@ x_range = x_end - x_start
 
 # ─── إعدادات حل التداخل ───────────────────────────────────────────────────────
 LOGO_WIDTH = 0.1   # عتبة المسافة بين شعارين لاعتبارهما "متداخلَين"
-Y_OFFSET   = 0   # مقدار الإزاحة العمودية عند التداخل
 target_px  = 28    # الحجم الظاهري المطلوب لكل شعار بالبكسل التقريبي عند dpi=300
 
 # ─────1. تجهيز الشعارات─────────────────────────────────────────────────────────
@@ -168,9 +148,6 @@ for row_idx, metric in enumerate(METRICS):
 
     best_team  = col_data.loc[col_data[metric].idxmax(), "TEAM"]
     worst_team = col_data.loc[col_data[metric].idxmin(), "TEAM"]
-
-    worst_x_bound = x_end
-    best_x_bound  = x_start
 
     best_val  = col_data[metric].max()
     worst_val = col_data[metric].min()
@@ -296,7 +273,22 @@ for row_idx, metric in enumerate(METRICS):
     fontsize=Metric_size, color=Metric_color, fontweight=Metric_bold,
     transform=ax.get_yaxis_transform())
 
+# ─────4ب. رسم الخطوط الفاصلة بين المؤشرات─────────────────────────────────────
+if SHOW_SEPARATOR:
+    # transform مختلط: x بإحداثيات المحور (axes fraction)، y بإحداثيات البيانات
+    trans_separator = mtransforms.blended_transform_factory(ax.transAxes, ax.transData)
 
+    separator_x_end = 30   # عدّل هذه القيمة لتتحكم بمدى امتداد الخط تحت اسم المؤشر
+
+    for row_idx in range(n_metrics - 1):
+        y_current = (n_metrics - 1 - row_idx) * row_height
+        y_next    = (n_metrics - 1 - (row_idx + 1)) * row_height
+        y_mid     = (y_current + y_next) / 2
+
+        ax.plot([x_start, separator_x_end], [y_mid + 0.05, y_mid + 0.05],
+                color=SEPARATOR_COLOR, linewidth=SEPARATOR_WIDTH,
+                linestyle=SEPARATOR_STYLE, zorder=1,
+                transform=trans_separator, clip_on=False)
 # ─────5. رأس المخطط─────────────────────────────────────────────────────────────
 
 top_row_y = (n_metrics - 1) * row_height
@@ -320,24 +312,8 @@ ax.axis("off")
 
 plt.tight_layout()
 
-# === تعديل 2 ===
-# الحفظ بصيغة SVG (متجهة/Vector) بدل الاعتماد فقط على PNG.
-# - bbox_inches='tight' و pad_inches=0.1: يمنعان اقتصاص أي جزء من العناصر
-#   عند الحفظ بدقة عالية (مشكلة شائعة تظهر فجأة عند رفع dpi).
-# - facecolor=fig.get_facecolor(): يضمن خلفية بيضاء نقية بدل أن تصبح
-#   شفافة بالخطأ (السلوك الافتراضي لبعض إصدارات matplotlib مع savefig).
-# النصوص والخطوط والنقاط ستكون حادة 100% بلا أي بكسلة عند التكبير.
-# (الشعارات نفسها تبقى محكومة بدقة الصورة المصدر كما هي، راجع الملاحظة أعلاه)
-fig.savefig('output_chart.svg', format='svg',
-            bbox_inches='tight', pad_inches=0.1,
+
+fig.savefig('output_chart_hq.png', format='png', dpi=1200,
+            bbox_inches='tight', pad_inches=0,
             facecolor=fig.get_facecolor())
 
-# === تعديل 3 ===
-# نسخة PNG بجودة قصوى كبديل، في حال احتجت صيغة نقطية لأي سبب
-# (مثل لصقها في PowerPoint/Word لا يدعم SVG بسهولة).
-# رفع dpi من 300 إلى 600 يضاعف عدد البكسلات في كل بوصة (دقة أعلى بكثير عند الطباعة/التكبير).
-fig.savefig('output_chart_hq.png', format='png', dpi=600,
-            bbox_inches='tight', pad_inches=0.1,
-            facecolor=fig.get_facecolor())
-
-plt.close(fig)

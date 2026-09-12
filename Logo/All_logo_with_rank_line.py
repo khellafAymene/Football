@@ -91,18 +91,17 @@ x_range = x_end - x_start
 
 
 # ─────1. تجهيز الشعارات─────────────────────────────────────────────────────────
-
+target_px  = 28    # الحجم الظاهري المطلوب لكل شعار بالبكسل التقريبي عند dpi=300
 _logo_cache = {}
 
-def preload_logos(url_list, size=(28, 28)):
-    """تحميل جميع الشعارات مرة واحدة في البداية"""
+def preload_logos(url_list):
+    """تحميل جميع الشعارات مرة واحدة في البداية، بأقصى دقة متاحة دون تصغير"""
     for url in url_list:
         if url in _logo_cache:
             continue
         try:
             response = requests.get(url, timeout=5)
             img = Image.open(BytesIO(response.content)).convert("RGBA")
-            img = img.resize(size, Image.LANCZOS)
             _logo_cache[url] = np.array(img)
         except Exception:
             _logo_cache[url] = None
@@ -201,8 +200,8 @@ for row_idx, metric in enumerate(METRICS):
 
         logo = get_logo(item["url"])
         if logo is not None:
-            zoom = 0.8 if item["is_special"] else 0.8
-            img_box = OffsetImage(logo, zoom=zoom)
+            zoom = target_px / logo.shape[0]
+            img_box = OffsetImage(logo, zoom=zoom, resample=True)
             ab = AnnotationBbox(img_box, (xnorm, y_actual),
                                 frameon=False, zorder=5)
             ax.add_artist(ab)
@@ -300,10 +299,15 @@ ax.text(x_end, top_row_y + title_gap_right, Title_right,
 
 # ─────6. تنظيف المحاور وحفظ الملف──────────────────────────────────────────────
 
+
 ax.set_xlim(-0.05, 1.05)
 ax.set_ylim(-0.8, (n_metrics - 1) * row_height + max(title_gap_left, title_gap_right) + 0.5)
 ax.axis("off")
 
 plt.tight_layout()
-plt.show()
-plt.close(fig)
+
+
+fig.savefig('output_chart_hq.png', format='png', dpi=1200,
+            bbox_inches='tight', pad_inches=0,
+            facecolor=fig.get_facecolor())
+
