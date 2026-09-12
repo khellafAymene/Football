@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from ANIS_HAJJAJI import *
-
 # 1. استيراد المكتبات الخاصة بدعم اللغة العربية
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -26,7 +25,7 @@ def ar(text):
 
 #─────0. تحديد القيم────────────────────────────────────────────────────────────────────
 #────────────────────────────────────────────────────────────────────────────────────────
-Max_players = 24           # أقصى عدد للاعبين في الترتيب
+Max_players = dataset["RANK"].max()           # أقصى عدد للاعبين في الترتيب
 
 # خاص بالعنوان الرئيسي 1
 First_tittel = "Anis"                                   # العنوان الرئيسي
@@ -153,7 +152,7 @@ if len(selected_players) > 0:
         mid_angle   = (start_angle + end_angle) / 2
 
         # تحويل القيم إلى أرقام
-        val = percent_to_number(values[i])
+        val =values[i]
 
         # تخزين لون الفئة
         base_color = colors[i]
