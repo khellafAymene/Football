@@ -1,10 +1,7 @@
 # ─── استيراد المكتبات ──────────────────────────────────────────────────────────
-
-import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import matplotlib.transforms as mtransforms
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
@@ -13,26 +10,13 @@ from io import BytesIO
 import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
-# 1. استيراد المكتبات
-import arabic_reshaper
-from bidi.algorithm import get_display
+
 
 # 2. تحديد الخط والتخلص من مشاكل إشارة السالب
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['Calibri', 'Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 
-# 3. إعداد المشكل لحل مشكلة المربعات (تعطيل الـ ligatures)
-reshaper = arabic_reshaper.ArabicReshaper(configuration={
-    'delete_harakat': True,
-    'support_ligatures': False
-})
-
-# 4. دالة معالجة النصوص
-def ar(text):
-    if not text:
-        return ""
-    return get_display(reshaper.reshape(str(text)))
 
 
 # ─────0. تحديد القيم────────────────────────────────────────────────────────────
