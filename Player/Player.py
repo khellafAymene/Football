@@ -93,7 +93,7 @@ if len(selected_players) > 0:
     angles = np.linspace(0, 2*np.pi, N+1)
 
     # رسم المخطط
-    fig, ax = plt.subplots(figsize=(Width, Length), subplot_kw=dict(polar=True), dpi=300)
+    fig, ax = plt.subplots(figsize=(Width, Length), subplot_kw=dict(polar=True), dpi=600)
 
     # إعدادات محور المخطط
     ax.set_ylim(0, 110)                                          # ← تحديد نطاق المحور
@@ -236,7 +236,7 @@ if len(selected_players) > 0:
 #────────────────────────────────────────────────────────────────────────────────────────
 
 
-fig.savefig('output_chart_hq.png', format='png', dpi=1200,
+fig.savefig('output_chart_hq.png', format='png', dpi=600,
             bbox_inches='tight', pad_inches=0,
             facecolor=fig.get_facecolor())
 

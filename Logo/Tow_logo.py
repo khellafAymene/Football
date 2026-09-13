@@ -124,7 +124,7 @@ preload_logos(all_urls)
 n_metrics  = len(METRICS)
 fig_height = n_metrics * row_height + 1.2
 
-fig, ax = plt.subplots(figsize=(fig_width, fig_height),dpi=300)
+fig, ax = plt.subplots(figsize=(fig_width, fig_height),dpi=600)
 fig.patch.set_facecolor(COLOR_BG)
 ax.set_facecolor(COLOR_BG)
 
@@ -311,7 +311,7 @@ ax.axis("off")
 plt.tight_layout()
 
 
-fig.savefig('output_chart_hq.png', format='png', dpi=1200,
+fig.savefig('output_chart_hq.png', format='png', dpi=600,
             bbox_inches='tight', pad_inches=0,
             facecolor=fig.get_facecolor())
 
