@@ -6,7 +6,7 @@ import matplotlib.font_manager as fm
 
 # الاعتماد فقط على خط عربي متوفر في النظام (بدون ملف خط خارجي)
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Calibri', 'Tahoma', 'Segoe UI', 'Arial']
+plt.rcParams['font.sans-serif'] = ['Segoe UI', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False  # ← لتفادي مشاكل ظهور إشارة السالب في الأرقام
 
 font_italic = None  # ← لم يعد هناك خط خارجي، ونعتمد على الخط الافتراضي أعلاه
