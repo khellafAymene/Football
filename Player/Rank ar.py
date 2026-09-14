@@ -6,7 +6,7 @@ from ANIS_HAJJAJI import *
 
 # 2. تحديد الخطوط التي تدعم العربية والتخلص من مشاكل إشارة السالب
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Calibri', 'Tahoma', 'Segoe UI', 'Arial']
+plt.rcParams['font.sans-serif'] = [ 'Segoe UI', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 
 
