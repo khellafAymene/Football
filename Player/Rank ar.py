@@ -263,5 +263,5 @@ if len(selected_players) > 0:
 #────────────────────────────────────────────────────────────────────────────────────────
 
 
-fig.subplots_adjust(top=1, bottom=0.0, left=0.0, right=0.90)
+fig.subplots_adjust(top=0.85, bottom=0.1, left=0.1, right=0.90)
 plt.show()
