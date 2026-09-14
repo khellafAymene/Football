@@ -2,26 +2,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from ANIS_HAJJAJI import *
-# 1. استيراد المكتبات الخاصة بدعم اللغة العربية
-import arabic_reshaper
-from bidi.algorithm import get_display
+
 
 # 2. تحديد الخطوط التي تدعم العربية والتخلص من مشاكل إشارة السالب
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['Calibri', 'Tahoma', 'Segoe UI', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 
-# 3. إعداد المشكل لحل مشكلة المربعات (تعطيل الـ ligatures)
-reshaper = arabic_reshaper.ArabicReshaper(configuration={
-    'delete_harakat': True,
-    'support_ligatures': False
-})
-
-# 4. دالة معالجة النصوص العربية
-def ar(text):
-    if not text:
-        return ""
-    return get_display(reshaper.reshape(str(text)))
 
 #─────0. تحديد القيم────────────────────────────────────────────────────────────────────
 #────────────────────────────────────────────────────────────────────────────────────────
