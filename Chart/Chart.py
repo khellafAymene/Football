@@ -13,7 +13,7 @@ font_prop = None
 Color_A = "#4D8C48"
 Color_B = "#862424"
 # خاص بالعنوان الرئيسي 1
-First_tittel         = "GAME SUMMARY"            # ← نص العنوان الرئيسي
+First_tittel         = "إحصائيات الفريقين"            # ← نص العنوان الرئيسي
 First_tittel_color   = "#9B30D0"                 # ← لون العنوان الرئيسي
 First_tittel_size    = 15                        # ← حجم العنوان الرئيسي
 First_tittel_bold    = "bold"                    # ← سمك العنوان الرئيسي | None لإزالة السمك
