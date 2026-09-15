@@ -6,7 +6,7 @@ import matplotlib.font_manager as fm
 
 # الاعتماد فقط على خط عربي متوفر في النظام (بدون ملف خط خارجي)
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Calibri', 'Tahoma', 'Segoe UI', 'Arial']
+plt.rcParams['font.sans-serif'] = ['Segoe UI', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False  # ← لتفادي مشاكل ظهور إشارة السالب في الأرقام
 
 font_italic = None  # ← لم يعد هناك خط خارجي، ونعتمد على الخط الافتراضي أعلاه
@@ -324,7 +324,5 @@ if len(selected_players) >= 2:
 
 
 
-fig.savefig('output_chart_hq.png', format='png', dpi=600,
-            bbox_inches='tight', pad_inches=0,
-            facecolor=fig.get_facecolor())
-
+fig.subplots_adjust(top=0.85, bottom=0.1, left=0.1, right=0.90)
+plt.show()

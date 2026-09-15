@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 
 # 2. تحديد الخط والتخلص من مشاكل إشارة السالب
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Calibri', 'Segoe UI', 'Tahoma', 'Arial']
+plt.rcParams['font.sans-serif'] = ['Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 
 
@@ -311,7 +311,5 @@ ax.axis("off")
 plt.tight_layout()
 
 
-fig.savefig('output_chart_hq.png', format='png', dpi=600,
-            bbox_inches='tight', pad_inches=0,
-            facecolor=fig.get_facecolor())
-
+fig.subplots_adjust(top=1, bottom=0.0, left=0.0, right=0.90)
+plt.show()
