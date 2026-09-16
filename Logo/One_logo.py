@@ -330,5 +330,5 @@ ax.axis("off")
 plt.tight_layout()
 
 
-fig.subplots_adjust(top=1, bottom=0.0, left=0.0, right=0.90)
+fig.subplots_adjust(top=1, bottom=0.0, left=0.0, right=0.65)
 plt.show()
