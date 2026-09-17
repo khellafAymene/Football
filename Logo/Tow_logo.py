@@ -44,7 +44,7 @@ Metric_color = "#333333"                  # لون كتابة المأشرات
 
 # 3 خاص بإعدادات الشكل
 row_height = 0.63                 # إرجاع المسافة الأصلية لعدم الحاجة للإزاحة العمودية
-fig_width  = 6.3                   # عرض الشكل بالإنش
+fig_width  = 7.5                   # عرض الشكل بالإنش
 
 # 4 خاص بألوان المخطط
 COLOR_DOT        = "#C8C8C8"   # لون النقاط العادية (الفرق الأخرى)
@@ -311,5 +311,5 @@ ax.axis("off")
 plt.tight_layout()
 
 
-fig.subplots_adjust(top=1, bottom=0.0, left=0.0, right=0.65)
+fig.subplots_adjust(top=1, bottom=0.0, left=0.0, right=0.79)
 plt.show()
