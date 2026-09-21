@@ -12,9 +12,26 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-# 2. تحديد الخط والتخلص من مشاكل إشارة السالب
+# 2. تحديد الخط والتخلص من مشاكل إشارة السالب (مع الخط المخصص — دون تعديل بقية الكود)
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Segoe UI', 'Tahoma', 'Arial']
+plt.rcParams['axes.unicode_minus'] = False
+
+# ─── الخط المخصص (محلي أو من GitHub): يُطبَّق على كل نصوص المخطط تلقائيًا ───
+# غيّر FONT_SOURCE إلى "local" أو "github" حسب مكان ملف خطك،
+# وليس هناك أي تعديل آخر مطلوب في الكود.
+
+import matplotlib.font_manager as fm
+
+FONT_PATH = r"D:\\font\\Alexandria-Regular.ttf"   # الخط المحلي
+
+try:
+    fm.fontManager.addfont(FONT_PATH)
+    custom = fm.FontProperties(fname=FONT_PATH).get_name()
+except Exception:
+    custom = None                          # يكمل بالخطوط الافتراضية
+
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.sans-serif'] = ([custom] if custom else []) + ['Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 
 

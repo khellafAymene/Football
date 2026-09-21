@@ -1,9 +1,18 @@
 import matplotlib.pyplot as plt
 from mplsoccer import Pitch
-
 # الاعتماد على خط عربي متوفر في النظام (بدون ملف خط خارجي)
+import matplotlib.font_manager as fm
+
+FONT_PATH = r"D:\\font\\Alexandria-Regular.ttf"   # الخط المحلي
+
+try:
+    fm.fontManager.addfont(FONT_PATH)
+    custom = fm.FontProperties(fname=FONT_PATH).get_name()
+except Exception:
+    custom = None                          # يكمل بالخطوط الافتراضية
+
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Calibri', 'Tahoma', 'Segoe UI', 'Arial']
+plt.rcParams['font.sans-serif'] = ([custom] if custom else []) + ['Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 font_italic = None
 

@@ -3,11 +3,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 from ANIS_HAJJAJI import *
 import matplotlib.font_manager as fm
+# الاعتماد على خط عربي متوفر في النظام (بدون ملف خط خارجي)
+import matplotlib.font_manager as fm
 
-# الاعتماد فقط على خط عربي متوفر في النظام (بدون ملف خط خارجي)
+FONT_PATH = r"D:\\font\\Alexandria-Regular.ttf"   # الخط المحلي
+
+try:
+    fm.fontManager.addfont(FONT_PATH)
+    custom = fm.FontProperties(fname=FONT_PATH).get_name()
+except Exception:
+    custom = None                          # يكمل بالخطوط الافتراضية
+
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Segoe UI', 'Arial']
-plt.rcParams['axes.unicode_minus'] = False  # ← لتفادي مشاكل ظهور إشارة السالب في الأرقام
+plt.rcParams['font.sans-serif'] = ([custom] if custom else []) + ['Segoe UI', 'Tahoma', 'Arial']
+plt.rcParams['axes.unicode_minus'] = False
 
 font_italic = None  # ← لم يعد هناك خط خارجي، ونعتمد على الخط الافتراضي أعلاه
 

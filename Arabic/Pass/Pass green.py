@@ -1,27 +1,38 @@
-
 import matplotlib.pyplot as plt
 from mplsoccer import Pitch
 
 
 # الاعتماد على خط عربي متوفر في النظام (بدون ملف خط خارجي)
+import matplotlib.font_manager as fm
+
+FONT_PATH = r"D:\\font\\Alexandria-Regular.ttf"   # الخط المحلي
+
+try:
+    fm.fontManager.addfont(FONT_PATH)
+    custom = fm.FontProperties(fname=FONT_PATH).get_name()
+except Exception:
+    custom = None                          # يكمل بالخطوط الافتراضية
+
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Calibri', 'Tahoma', 'Segoe UI', 'Arial']
+plt.rcParams['font.sans-serif'] = ([custom] if custom else []) + ['Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 font_italic = None
+
+
 
 #─────0. تحديد القيم────────────────────────────────────────────────────────────────────
 #────────────────────────────────────────────────────────────────────────────────────────
 
 # خاص بالعنوان الرئيسي 1
 First_tittel = "Anis"                                   # العنوان الرئيسي
-First_tittel_color = "#000000"                        # لون العنوان الرئيسي
+First_tittel_color = "#ffffff"                        # لون العنوان الرئيسي
 First_tittel_size = 18                                  # حجم العنوان الرئيسي
 First_tittel_bold = "bold"                              # سمك العنوان الرئيسي ولإزالة السمك غيرها إلى First_tittel_bold = None
 fontstyle = font_italic
 
 # خاص بالعنوان الفرعي 2
 Seconed_tittel = "Anis"                                 # العنوان الفرعي
-Seconed_tittel_color = "#000000"                      # لون العنوان الفرعي
+Seconed_tittel_color = "#ffffff"                      # لون العنوان الفرعي
 Seconedtittel_size = 14                                 # حجم العنوان الفرعي
 Seconed_tittel_bold = "bold"                            # سمك العنوان الفرعي ولإزالة السمك غيرها إلى Seconed_tittel_bold = None
 
@@ -31,8 +42,8 @@ color_complete = "#ad993c"                            # لون التمريرا�
 color_incomplete = "#ba4f45"                          # لون التمريرات الفاشلة
 
 # خاص بالملعب 4
-Stadium_color = "#FFFFFF"                             # لون الملعب
-Stadium_color_line = "#000000"                        # لون خطوط الملعب
+Stadium_color = "#22312C"                             # لون الملعب
+Stadium_color_line = "#ffffff"                        # لون خطوط الملعب
 H_left = 3.5                                            # الهامش على اليسار القيم محصورة بين (1-0)
 H_right = 3.5                                           # الهامش على اليمين القيم محصورة بين (1-0)
 H_top = 2.5                                             # الهامش من الأعلى القيم محصورة بين (1-0)
@@ -170,7 +181,7 @@ ax.text(
 
 plt.subplots_adjust(left=0.03, right=0.97, top=0.90, bottom=0.03)  # ← ضبط هوامش الصورة
 
-fig.savefig('pass_white_hq.png', format='png', dpi=600,
+fig.savefig('pass_green_hq.png', format='png', dpi=600,
             bbox_inches='tight', pad_inches=0.1,
             facecolor=fig.get_facecolor())          # ← حفظ الشكل بجودة عالية (600 dpi)
 

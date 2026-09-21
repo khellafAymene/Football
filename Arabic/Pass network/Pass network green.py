@@ -4,10 +4,19 @@ from mplsoccer import Pitch
 import numpy as np
 from matplotlib.colors import to_rgba
 
-
 # الاعتماد على خط عربي متوفر في النظام (بدون ملف خط خارجي)
+import matplotlib.font_manager as fm
+
+FONT_PATH = r"D:\\font\\Alexandria-Regular.ttf"   # الخط المحلي
+
+try:
+    fm.fontManager.addfont(FONT_PATH)
+    custom = fm.FontProperties(fname=FONT_PATH).get_name()
+except Exception:
+    custom = None                          # يكمل بالخطوط الافتراضية
+
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Calibri', 'Tahoma', 'Segoe UI', 'Arial']
+plt.rcParams['font.sans-serif'] = ([custom] if custom else []) + ['Segoe UI', 'Tahoma', 'Arial']
 plt.rcParams['axes.unicode_minus'] = False
 font_italic = None
 
@@ -15,43 +24,43 @@ font_italic = None
 #────────────────────────────────────────────────────────────────────────────────────────
 # خاص بالعنوان الرئيسي 1
 First_tittel="Anis"                                     # العنوان الرئيسي
-First_tittel_color = "#000000"                        # لون العنوان الرئيسي
+First_tittel_color = "#FFFFFF"                        # لون العنوان الرئيسي
 First_tittel_size = 18                                  # حجم العنوان الرئيسي
 First_tittel_bold = "bold"                              # سمك العنوان الرئيسي ولإزالة السمك غيرها إلى First_tittel_bold = None
 fontstyle = font_italic
 
 # خاص بالعنوان الفرعي 2
 Seconed_tittel="Anis"                                   # العنوان الفرعي
-Seconed_tittel_color = "#000000"                      # لون العنوان الفرعي
+Seconed_tittel_color = "#FFFFFF"                      # لون العنوان الفرعي
 Seconedtittel_size = 14                                 # حجم العنوان الفرعي
 Seconed_tittel_bold = "bold"                            # سمك العنوان الفرعي ولإزالة السمك غيرها إلى First_tittel_bold = None
 
 # خاص  بالخطوط 3
 MIN_TRANSPARENCY = 0.1                                  # أقل شفافية للخط
 MAX_LINE_WIDTH = 12                                     # أكبر سمك للخط
-color_link = "#BF616A"                                # لون الخطوط بين اللاعبين
+color_link = "#FFFFFF"                                # لون الخطوط بين اللاعبين
 
 # خاص بالدائرة الخارجية 4
 MAX_MARKER_SIZE = 3000                                  # أكبر حجم للدائرة
-color_circle_out = "#BF616A"                          # لون الدوائر الخارجية
+color_circle_out = "#000000"                          # لون الدوائر الخارجية
 color_edgecolors_circle_out = "#000000"               # لون محيط الدائرة الخارجية
 linewidth_circle_out = 1                                # سمك محيط الدائرة الخارجية
 
 # خاص بالدائرة داخلية 5
-color_circle_in = "#FFFFFF"                           # لون الدوائر الداخلية
+color_circle_in = "#FD0A0A"                           # لون الدوائر الداخلية
 color_edgecolors_circle_in = "#000000"                # لون محيط الدائرة الداخلية
 linewidth_circle_in = 1                                 # سمك محيط الدائرة الداخلية
 circle_fact = 0.85                                      # النسبة المئوية لحجم الدائرة الداخلية
 
 # خاص بالكتابة الموجودة داخل الدائرة 6
-text_color = "#000000"                                # لون رقم الرلاعب
+text_color = "#FFFFFF"                                # لون رقم الرلاعب
 text_size = 14                                          # حجم رقم الرلاعب
 text_bold = "bold"                                      # سمك رقم الرلاعب ولإزالة السمك غيرها إلى text_bold = None
 
 # خاص بالملعب 7
 Stadium_type = "wyscout"
-Stadium_color = "#FFFFFF"                             # لون الملعب
-Stadium_color_line = "#000000"                        # لون خطوط الملعب
+Stadium_color = "#22312C"                             # لون الملعب
+Stadium_color_line = "#FFFFFF"                        # لون خطوط الملعب
 Length = 8                                              # طول إطار الشكل
 Width  = 12                                             # عرض إطار الشكل
 H_left=3                                                # الهامش على اليسار القيم محصورة بين (1-0)
@@ -230,7 +239,7 @@ ax['title'].text(
 # ── 5. عرض الصورة ─────────────────────────────────────────────────────────────────────
 #────────────────────────────────────────────────────────────────────────────────────────
 
-fig.savefig('pass_network_white_hq.png', format='png', dpi=600,
+fig.savefig('pass_network_green_hq.png', format='png', dpi=600,
             bbox_inches='tight', pad_inches=0.1,
             facecolor=fig.get_facecolor())          # ← حفظ الشكل بجودة عالية (600 dpi)
 
