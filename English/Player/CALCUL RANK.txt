@@ -1,0 +1,17 @@
+RANK = 
+VAR CurrentMetric = Merge1[METRIC]
+VAR CurrentWeek = Merge1[الأسبوع]
+VAR CurrentLeague = Merge1[الدوري]
+RETURN
+RANKX(
+    FILTER(
+        Merge1,
+        Merge1[METRIC] = CurrentMetric &&
+        Merge1[الأسبوع] = CurrentWeek &&
+        Merge1[الدوري] = CurrentLeague
+    ),
+    Merge1[VALUE],
+    ,
+    DESC,
+    Skip
+)
