@@ -118,7 +118,7 @@ METRICS = dataset["METRIC"].unique()
 
 
 # ─── ضرب القيم في 100 إذا كان اسم المؤشر يحتوي على % ───────────────────────
-pct_mask = dataset["METRIC"].astype(str).str.contains("%", regex=False)
+pct_mask = dataset["METRIC"].astype(str).str.contains("نسبة", regex=False)
 dataset.loc[pct_mask, "VALUE"] = dataset.loc[pct_mask, "VALUE"] * 100
 
 
